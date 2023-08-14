@@ -25,8 +25,8 @@ public class SimpleBenchmark {
         System.out.println(json);
 
         List<User> usersList = new ArrayList<>();
-        for (int i = 0; i < 50000; i++) {
-            usersList.add(generateRandomUser());
+        for (int i = 0; i < 500000; i++) {
+            usersList.add(generateRandomUser(i));
         }
 
 
@@ -78,25 +78,23 @@ public class SimpleBenchmark {
         }
         return jsonBuilder.toString();
     }
-    private static User generateRandomUser() {
-        Random random = new Random();
+    private static User generateRandomUser(int i) {
 
-        // Generate random values for User properties
-        String id = Integer.toHexString(random.nextInt());
-        String email = randomString(10) + "@example.com";
-        String username = randomString(8);
-        String name = randomString(10) + " " + randomString(10);
-        String company = randomString(10) + " Inc.";
-        String dob = randomDateOfBirth(random);
-        String address = randomString(10) + " Street, " + randomString(8);
-        double lat = random.nextDouble() * 180.0 - 90.0;
-        double lon = random.nextDouble() * 360.0 - 180.0;
+        String id = String.valueOf(i);
+        String email = "abc@example.com";
+        String username = "testuser";
+        String name = "James Brown";
+        String company = "Cpi Inc.";
+        String dob = getDateOfBirth();
+        String address =" Street, 15";
+        double lat = 90.0;
+        double lon = 180.0;
         String about = "Randomly generated user.";
 
         // Create and return a new User object
         Location location = new Location(lat, lon);
         Profile profile = new Profile(name, company, dob, address, location, about);
-        String apiKey = java.util.UUID.randomUUID().toString();
+        String apiKey = "sesFSH9REE30E0E0E0DFG-GSDGSDFSDG";
         List<String> roles = new ArrayList<>();
         roles.add("owner");
         roles.add("admin");
@@ -105,24 +103,10 @@ public class SimpleBenchmark {
 
         return new User(id, email, username, profile, apiKey, roles, createdAt, updatedAt);
     }
-
-    // Helper method to generate random strings
-    private static String randomString(int length) {
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        for (int i = 0; i < length; i++) {
-            int index = random.nextInt(characters.length());
-            sb.append(characters.charAt(index));
-        }
-        return sb.toString();
-    }
-
-    // Helper method to generate random date of birth
-    private static String randomDateOfBirth(Random random) {
-        int year = random.nextInt(50) + 1950; // Random year between 1950 and 1999
-        int month = random.nextInt(12) + 1; // Random month between 1 and 12
-        int day = random.nextInt(28) + 1; // Random day between 1 and 28
+    private static String getDateOfBirth() {
+        int year = 1950;
+        int month = 1;
+        int day = 3;
         return String.format("%04d-%02d-%02d", year, month, day);
     }
 
