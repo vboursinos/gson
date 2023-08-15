@@ -2,7 +2,10 @@ package com.google.gson.benchmark;
 
 import com.google.gson.*;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,6 +14,10 @@ import java.util.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class SimpleBenchmark {
+    private static final String TOP_COUNTRIES_FILE = "files/countries.json";
+    private static final String EMPLOYEE_FILE = "files/employee.json";
+    private static final int TOP_COUNT = 20;
+
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -43,21 +50,67 @@ public class SimpleBenchmark {
 
         // Access the parsed data for each user
         for (User user : users) {
-            if (user.getProfile().getName().equalsIgnoreCase("test")){
+            if (user.getProfile().getName().equalsIgnoreCase("test")) {
                 System.out.println(user);
             }
         }
 
-        //parse 70mb json file and use counter and sum
-        for (int i=0; i<5; i++) {
-            String fileName = "files/employee.json"; // Change to your JSON file name
-            int count = countSalariesOver100000(fileName);
-            System.out.println("Number of salaries over $100,000: " + count);
-        }
+        employeeAnalyzer();
+        countriesAnalyzer();
 
         long end = System.currentTimeMillis();
         System.out.println("time: " + (end - start));
 
+    }
+
+    private static void employeeAnalyzer() {
+        //parse 70mb json file and use counter and sum
+        for (int i = 0; i < 5; i++) {
+            String fileName = EMPLOYEE_FILE; // Change to your JSON file name
+            int count = countSalariesOver100000(fileName);
+            System.out.println("----------------------------------------");
+            System.out.println("Number of salaries over $100,000: " + count);
+        }
+    }
+
+    private static void countriesAnalyzer() {
+        String fileName = TOP_COUNTRIES_FILE; // Change to your JSON file name
+        int topCount = TOP_COUNT;
+        for (int i = 0; i < 5; i++) {
+            List<Country> topCountries = getTopPopulationCountries(fileName, topCount);
+
+            System.out.println("Top " + topCount + " Countries by Population:");
+            for (Country country : topCountries) {
+                System.out.println(country.getCountryName() + ": " + country.getPopulation());
+            }
+        }
+    }
+
+    private static List<Country> getTopPopulationCountries(String fileName, int topCount) {
+        List<Country> countryList = new ArrayList<>();
+        JsonArray jsonArray;
+
+        try (Reader fileReader = Files.newBufferedReader(Paths.get(fileName), UTF_8)) {
+            jsonArray = JsonParser.parseReader(fileReader).getAsJsonArray();
+
+            for (JsonElement jsonElement : jsonArray) {
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                String countryName = jsonObject.get("countryName").getAsString();
+                int population = jsonObject.get("population").getAsInt();
+                countryList.add(new Country(countryName, population));
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading JSON file: " + e.getMessage());
+        }
+
+        Collections.sort(countryList, new Comparator<Country>() {
+            @Override
+            public int compare(Country c1, Country c2) {
+                return Integer.compare(c2.getPopulation(), c1.getPopulation());
+            }
+        });
+
+        return countryList.subList(0, Math.min(topCount, countryList.size()));
     }
 
     private static void writeUsersToJsonFile(List<User> users, String filePath) {
@@ -66,14 +119,14 @@ public class SimpleBenchmark {
             gson.toJson(users, writer);
             System.out.println("Users data has been written to " + filePath);
         } catch (IOException e) {
-           System.err.println("Error writing JSON file: " + e.getMessage());
+            System.err.println("Error writing JSON file: " + e.getMessage());
         }
     }
 
 
     private static String readJsonFromFile(String filePath) {
         StringBuilder jsonBuilder = new StringBuilder();
-        try (BufferedReader reader =  Files.newBufferedReader(Paths.get(filePath), UTF_8)) {
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), UTF_8)) {
             String line;
             System.out.println("Reading file using BufferedReader");
             while ((line = reader.readLine()) != null) {
@@ -84,6 +137,7 @@ public class SimpleBenchmark {
         }
         return jsonBuilder.toString();
     }
+
     private static User generateRandomUser(int i) {
 
         String id = String.valueOf(i);
@@ -92,7 +146,7 @@ public class SimpleBenchmark {
         String name = "James Brown";
         String company = "Cpi Inc.";
         String dob = getDateOfBirth();
-        String address =" Street, 15";
+        String address = " Street, 15";
         double lat = 90.0;
         double lon = 180.0;
         String about = "Randomly generated user.";
@@ -109,6 +163,7 @@ public class SimpleBenchmark {
 
         return new User(id, email, username, profile, apiKey, roles, createdAt, updatedAt);
     }
+
     private static String getDateOfBirth() {
         int year = 1950;
         int month = 1;
