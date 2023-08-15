@@ -2,10 +2,7 @@ package com.google.gson.benchmark;
 
 import com.google.gson.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,7 +23,8 @@ public class SimpleBenchmark {
         userAnalyzer();
         employeeAnalyzer();
         countriesAnalyzer();
-
+        employeeSalariesSum();
+        employeeSalariesSumWithStr();
         long end = System.currentTimeMillis();
         System.out.println("time: " + (end - start));
 
@@ -93,6 +91,68 @@ public class SimpleBenchmark {
         }
     }
 
+    public static void employeeSalariesSum() {
+        String fileName = EMPLOYEE_FILE; // Change to your JSON file name
+        for (int i = 0; i < 5; i++) {
+            long totalSalary = calculateTotalSalary(fileName);
+            System.out.println("Total sum of all salaries: $" + totalSalary);
+        }
+    }
+
+    public static void employeeSalariesSumWithStr() {
+        String fileName = EMPLOYEE_FILE; // Change to your JSON file name
+        for (int i = 0; i < 10; i++) {
+            long totalSalary = calculateTotalSalaryWithStr(fileName);
+            System.out.println("Total sum of all salaries: $" + totalSalary);
+        }
+    }
+
+
+    private static long calculateTotalSalary(String fileName) {
+        long totalSalary = 0;
+
+        try (Reader fileReader = Files.newBufferedReader(Paths.get(fileName), UTF_8)) {
+            JsonArray jsonArray = JsonParser.parseReader(fileReader).getAsJsonArray();
+
+            for (JsonElement jsonElement : jsonArray) {
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                int salary = jsonObject.get("salary").getAsInt();
+                totalSalary += salary;
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading JSON file: " + e.getMessage());
+        }
+
+        return totalSalary;
+    }
+
+    private static long calculateTotalSalaryWithStr(String fileName) {
+        int totalSalary = 0;
+
+        try {
+            StringBuilder jsonString = new StringBuilder();
+            Reader fileReader = Files.newBufferedReader(Paths.get(fileName), UTF_8);
+            int character;
+
+            while ((character = fileReader.read()) != -1) {
+                jsonString.append((char) character);
+            }
+
+            JsonArray jsonArray = JsonParser.parseString(jsonString.toString()).getAsJsonArray();
+
+            for (JsonElement jsonElement : jsonArray) {
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                int salary = jsonObject.get("salary").getAsInt();
+                totalSalary += salary;
+            }
+
+            fileReader.close();
+        } catch (IOException e) {
+            System.err.println("Error reading JSON file: " + e.getMessage());
+        }
+
+        return totalSalary;
+    }
     private static List<Country> getTopPopulationCountries(String fileName, int topCount) {
         List<Country> countryList = new ArrayList<>();
         JsonArray jsonArray;
