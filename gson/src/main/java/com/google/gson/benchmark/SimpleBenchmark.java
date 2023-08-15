@@ -16,19 +16,33 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class SimpleBenchmark {
     private static final String TOP_COUNTRIES_FILE = "files/countries.json";
     private static final String EMPLOYEE_FILE = "files/employee.json";
+    private static final String USER_FILE = "files/user.json";
     private static final int TOP_COUNT = 20;
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
+
+        simpleAnalyzer();
+        userAnalyzer();
+        employeeAnalyzer();
+        countriesAnalyzer();
+
+        long end = System.currentTimeMillis();
+        System.out.println("time: " + (end - start));
+
+    }
+
+    private static void simpleAnalyzer(){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-
         Staff staff = createStaffObject();
 
         // Java objects to String
         String json = gson.toJson(staff);
-
         System.out.println(json);
+    }
+
+    private static void userAnalyzer(){
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         List<User> usersList = new ArrayList<>();
         for (int i = 0; i < 500000; i++) {
@@ -36,7 +50,7 @@ public class SimpleBenchmark {
         }
 
 
-        String filePath = "file.json";
+        String filePath = USER_FILE;
 
         // Write the User objects to the JSON file
         writeUsersToJsonFile(usersList, filePath);
@@ -55,14 +69,7 @@ public class SimpleBenchmark {
             }
         }
 
-        employeeAnalyzer();
-        countriesAnalyzer();
-
-        long end = System.currentTimeMillis();
-        System.out.println("time: " + (end - start));
-
     }
-
     private static void employeeAnalyzer() {
         //parse 70mb json file and use counter and sum
         for (int i = 0; i < 5; i++) {
