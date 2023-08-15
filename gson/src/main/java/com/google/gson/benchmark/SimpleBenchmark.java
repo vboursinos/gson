@@ -1,7 +1,6 @@
 package com.google.gson.benchmark;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -47,6 +46,13 @@ public class SimpleBenchmark {
             if (user.getProfile().getName().equalsIgnoreCase("test")){
                 System.out.println(user);
             }
+        }
+
+        //parse 70mb json file and use counter and sum
+        for (int i=0; i<5; i++) {
+            String fileName = "files/employee.json"; // Change to your JSON file name
+            int count = countSalariesOver100000(fileName);
+            System.out.println("Number of salaries over $100,000: " + count);
         }
 
         long end = System.currentTimeMillis();
@@ -126,5 +132,25 @@ public class SimpleBenchmark {
 
         return staff;
 
+    }
+
+    private static int countSalariesOver100000(String fileName) {
+        int count = 0;
+
+        try (Reader fileReader = Files.newBufferedReader(Paths.get(fileName), UTF_8)) {
+            JsonArray jsonArray = JsonParser.parseReader(fileReader).getAsJsonArray();
+
+            for (JsonElement jsonElement : jsonArray) {
+                JsonObject jsonObject = jsonElement.getAsJsonObject();
+                int salary = jsonObject.get("salary").getAsInt();
+                if (salary > 100000) {
+                    count++;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading JSON file: " + e.getMessage());
+        }
+
+        return count;
     }
 }
